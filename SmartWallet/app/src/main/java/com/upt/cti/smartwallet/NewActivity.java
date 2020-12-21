@@ -3,6 +3,7 @@ package com.upt.cti.smartwallet;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -32,6 +33,7 @@ public class NewActivity extends AppCompatActivity {
     private ListView listPayments;
     private int currentMonth;
     private List<Payment> payments = new ArrayList<>();
+    private PaymentAdapter adapter;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -51,9 +53,14 @@ public class NewActivity extends AppCompatActivity {
 
         // setup firebase
         addPayments(p -> {
-            final PaymentAdapter adapter = new PaymentAdapter(this, R.layout.item_payment, p);
+            adapter = new PaymentAdapter(this, R.layout.item_payment, p);
             listPayments.setAdapter(adapter);
             tStatus.setText("Found " + payments.size() + " in the DB");
+            listPayments.setOnItemClickListener((parent, view, position, id) -> {
+                AppState.get().setCurrentPayment(payments.get(position));
+                AppState.get().setDatabaseReference(databaseReference);
+                startActivity(new Intent(getApplicationContext(), AddPaymentActivity.class));
+            });
         });
     }
 
@@ -75,17 +82,32 @@ public class NewActivity extends AppCompatActivity {
                     payments.add(payment);
                     callback.onCallBack(payments);
                 } catch (Exception e) {
-                    System.out.println(e);
+                    e.printStackTrace();
                 }
             }
 
             @Override
             public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                for (int i = 0; i < payments.size(); i++) {
+                    if (payments.get(i).timestamp.equals(snapshot.getKey().toString()))
+                        try {
+                            Payment updatePayment = snapshot.getValue(Payment.class);
+                            updatePayment.setTimestamp(snapshot.getKey());
+
+                            payments.set(i, updatePayment);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                }
             }
 
             @Override
             public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-
+                for (int i = 0; i < payments.size(); i++) {
+                    if (payments.get(i).timestamp.equals(snapshot.getValue(Payment.class).timestamp))
+                        payments.remove(i);
+                }
+                adapter.notifyDataSetChanged();
             }
 
             @Override
@@ -100,18 +122,19 @@ public class NewActivity extends AppCompatActivity {
         });
     }
 
-    private void onPrev(){
+    private void onPrev() {
         Toast.makeText(this, "Previous pressed", Toast.LENGTH_SHORT).show();
     }
 
-    public void onNext(){
+    public void onNext() {
         Toast.makeText(this, "Next pressed", Toast.LENGTH_SHORT).show();
     }
 
-    public void onFab(){
-        Intent intent = new Intent(this, FabACtivity.class);
-        startActivity(intent);
+    public void onFab() {
+        AppState.get().setCurrentPayment(null);
+        startActivity(new Intent(this, AddPaymentActivity.class));
     }
+
     private interface FirebaseCallback {
         void onCallBack(List<Payment> p);
     }

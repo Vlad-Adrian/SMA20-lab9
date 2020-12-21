@@ -10,7 +10,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartWallet">
         <activity android:name=".MainActivity" />
-        <activity android:name=".FabACtivity" />
+        <activity
+            android:name=".AddPaymentActivity"
+            android:theme="@style/Base.Theme.AppCompat.Light.Dialog" />
         <activity android:name=".NewActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
