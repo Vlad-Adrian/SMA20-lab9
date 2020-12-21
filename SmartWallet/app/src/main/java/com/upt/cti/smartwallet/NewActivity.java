@@ -58,7 +58,7 @@ public class NewActivity extends AppCompatActivity {
             tStatus.setText("Found " + payments.size() + " in the DB");
             listPayments.setOnItemClickListener((parent, view, position, id) -> {
                 AppState.get().setCurrentPayment(payments.get(position));
-                AppState.get().setDatabaseReference(databaseReference);
+
                 startActivity(new Intent(getApplicationContext(), AddPaymentActivity.class));
             });
         });
@@ -72,6 +72,7 @@ public class NewActivity extends AppCompatActivity {
     private void addPayments(FirebaseCallback callback) {
         final FirebaseDatabase database = FirebaseDatabase.getInstance();
         databaseReference = database.getReference();
+        AppState.get().setDatabaseReference(databaseReference);
         databaseReference.child("wallet").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {

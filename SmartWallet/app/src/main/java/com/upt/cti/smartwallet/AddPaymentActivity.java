@@ -55,7 +55,7 @@ public class AddPaymentActivity extends AppCompatActivity {
             } catch (Exception e) {
             }
         } else {
-            paymentTime.setText("");
+            paymentTime.setText(AppState.getCurrentTimeDate());
         }
     }
 
