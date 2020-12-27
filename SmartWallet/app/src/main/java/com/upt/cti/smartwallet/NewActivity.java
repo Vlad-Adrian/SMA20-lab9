@@ -59,7 +59,9 @@ public class NewActivity extends AppCompatActivity {
         addPayments(p -> {
             adapter = new PaymentAdapter(this, R.layout.item_payment, p);
             listPayments.setAdapter(adapter);
-            tStatus.setText("Found " + payments.size() + " in the DB");
+            if(p.size() == 0){
+                tStatus.setText("Found 0 payments for " + Month.intToMonthName(currentMonth));
+            }
             listPayments.setOnItemClickListener((parent, view, position, id) -> {
                 AppState.get().setCurrentPayment(payments.get(position));
 
@@ -86,15 +88,12 @@ public class NewActivity extends AppCompatActivity {
                         payment.timestamp = snapshot.getKey();
 
                         payments.add(payment);
-//                        adapter.notifyDataSetChanged();
                         callback.onCallBack(payments);
 
                         tStatus.setText("Found " + payments.size() + " payments for " + Month.intToMonthName(currentMonth) + ".");
+                    }else {
+                        callback.onCallBack(payments);
                     }
-//                    Payment payment = snapshot.getValue(Payment.class);
-//                    payment.setTimestamp(snapshot.getKey());
-//                    payments.add(payment);
-//                    callback.onCallBack(payments);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
