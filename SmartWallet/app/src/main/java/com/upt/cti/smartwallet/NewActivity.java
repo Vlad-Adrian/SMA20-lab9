@@ -1,9 +1,8 @@
 package com.upt.cti.smartwallet;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -34,6 +33,7 @@ public class NewActivity extends AppCompatActivity {
     private int currentMonth;
     private List<Payment> payments = new ArrayList<>();
     private PaymentAdapter adapter;
+    SharedPreferences prefs;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -50,6 +50,10 @@ public class NewActivity extends AppCompatActivity {
         bPrevious.setOnClickListener(v -> onPrev());
         bNext.setOnClickListener(v -> onNext());
         fabAdd.setOnClickListener(v -> onFab());
+        prefs = getSharedPreferences("lastMonth", MODE_PRIVATE);
+        currentMonth = prefs.getInt("month", -1);
+        if (currentMonth == -1)
+            currentMonth = Month.monthFromTimestamp(AppState.getCurrentTimeDate());
 
         // setup firebase
         addPayments(p -> {
@@ -77,11 +81,20 @@ public class NewActivity extends AppCompatActivity {
             @Override
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
                 try {
+                    if (currentMonth == Month.monthFromTimestamp(snapshot.getKey())) {
+                        Payment payment = snapshot.getValue(Payment.class);
+                        payment.timestamp = snapshot.getKey();
 
-                    Payment payment = snapshot.getValue(Payment.class);
-                    payment.setTimestamp(snapshot.getKey());
-                    payments.add(payment);
-                    callback.onCallBack(payments);
+                        payments.add(payment);
+//                        adapter.notifyDataSetChanged();
+                        callback.onCallBack(payments);
+
+                        tStatus.setText("Found " + payments.size() + " payments for " + Month.intToMonthName(currentMonth) + ".");
+                    }
+//                    Payment payment = snapshot.getValue(Payment.class);
+//                    payment.setTimestamp(snapshot.getKey());
+//                    payments.add(payment);
+//                    callback.onCallBack(payments);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -124,11 +137,23 @@ public class NewActivity extends AppCompatActivity {
     }
 
     private void onPrev() {
-        Toast.makeText(this, "Previous pressed", Toast.LENGTH_SHORT).show();
+        if (currentMonth == 0) {
+            currentMonth = 11;
+        } else {
+            currentMonth -= 1;
+        }
+        prefs.edit().putInt("month", currentMonth).apply();
+        recreate();
     }
 
     public void onNext() {
-        Toast.makeText(this, "Next pressed", Toast.LENGTH_SHORT).show();
+        if (currentMonth == 11) {
+            currentMonth = 0;
+        } else {
+            currentMonth += 1;
+        }
+        prefs.edit().putInt("month", currentMonth).apply();
+        recreate();
     }
 
     public void onFab() {
