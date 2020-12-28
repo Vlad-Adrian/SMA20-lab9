@@ -117,7 +117,7 @@ public class NewActivity extends AppCompatActivity {
             @Override
             public void onChildRemoved(@NonNull DataSnapshot snapshot) {
                 for (int i = 0; i < payments.size(); i++) {
-                    if (payments.get(i).timestamp.equals(snapshot.getValue(Payment.class).timestamp))
+                    if (payments.get(i).timestamp.equals(snapshot.getKey()))
                         payments.remove(i);
                 }
                 adapter.notifyDataSetChanged();
